@@ -15,10 +15,8 @@ const timeLowSound = new Audio("./sounds/TimeLow.mp3");
 const unFlipSound = new Audio("./sounds/UnFlip.mp3");
 const winSound = new Audio("./sounds/Win.mp3");
 
-let userName = "";
-
 //game settings
-const maxTime = 20;
+const maxTime = 705;
 const endTimeout = 10000;
 
 //Game flags to be tracked across all listeners
@@ -27,13 +25,12 @@ let gameActive = false;
 let correctGuesses = 0;
 let neededGuesses = 0;
 
-let cardsArray = [];
-
 let scoreData = [];
+
 loadPlayerData();
 
 //Card generator Function
-function createCards() {
+function createCards(cardsArray) {
   //Generate the HTML
   for (let i = 0; i < cardsArray.length; i++) {
     let card = document.createElement("div");
@@ -57,9 +54,10 @@ function createCards() {
   }
 }
 
-function shuffleCards() {
+function shuffleCards(cardsArray) {
   cardsArray = cardsArray.concat(cardsArray);
   cardsArray.sort(() => Math.random() - 0.5);
+  return cardsArray;
 }
 
 //Check cards
@@ -178,6 +176,9 @@ function timeConvert(timer) {
 function storePlayerData() {
   let timeUsed = maxTime - timer;
   const maxScoreEntries = 10;
+
+  let userName = nameInputEl.value;
+
   scoreData.push({ time: timeUsed, name: userName });
   scoreData.sort((b, a) => b.time - a.time);
   if (scoreData.length > maxScoreEntries) {
@@ -211,15 +212,27 @@ function clearScoreBoard() {
   }
 }
 
-async function getData() {
+// async function getData() {
+//   let apiUrl = "./api/meme.json";
+//   try {
+//     let response = await fetch(apiUrl);
+//     let result = await response.json();
+//     cardsArray = result;
+//     createDeck();
+//     neededGuesses = cardsArray.length;
+//     startGame();
+//   } catch {
+//     console.log("API error");
+//   }
+// }
+
+async function fetchData() {
   let apiUrl = "./api/meme.json";
   try {
     let response = await fetch(apiUrl);
     let result = await response.json();
-    cardsArray = result;
-    createDeck();
-    neededGuesses = cardsArray.length;
-    startGame();
+
+    return result;
   } catch {
     console.log("API error");
   }
@@ -235,29 +248,36 @@ function resetGame() {
     card[i].remove();
   }
   timer = maxTime;
+  nameInputEl.value = "";
   startContainerEl.classList.remove("start-container-hidden");
 }
 
-function startGame() {
+async function startGame() {
+  let cardObject = await fetchData();
   gameActive = true;
   correctGuesses = 0;
-  shuffleCards();
-  createCards();
+  cardObject = createDeck(cardObject);
+  neededGuesses = cardObject.length;
+
+  cardObject = shuffleCards(cardObject);
+  console.log(cardObject);
+  console.log(neededGuesses);
+  createCards(cardObject);
+
   let timerEl = document.querySelector("#gameTimer");
   timerEl.style.visibility = "visible";
 }
 
 formEl.addEventListener("submit", function (e) {
   e.preventDefault();
-  userName = nameInputEl.value;
-  getData();
+
+  startGame();
   startContainerEl.classList.add("start-container-hidden");
 });
 
-function createDeck() {
-  //Funtion would be call immediately after api fetch
+function createDeck(cardsArray) {
   cardsArray.sort(() => Math.random() - 0.5);
-  cardsArray = cardsArray.slice(-10);
+  return cardsArray.slice(-10);
 }
 
 function playSound(sound) {
