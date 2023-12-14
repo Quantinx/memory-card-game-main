@@ -16,7 +16,7 @@ const unFlipSound = new Audio("./sounds/UnFlip.mp3");
 const winSound = new Audio("./sounds/Win.mp3");
 
 //game settings
-const maxTime = 705;
+const maxTime = 75;
 const endTimeout = 10000;
 
 //Game flags to be tracked across all listeners
@@ -212,20 +212,6 @@ function clearScoreBoard() {
   }
 }
 
-// async function getData() {
-//   let apiUrl = "./api/meme.json";
-//   try {
-//     let response = await fetch(apiUrl);
-//     let result = await response.json();
-//     cardsArray = result;
-//     createDeck();
-//     neededGuesses = cardsArray.length;
-//     startGame();
-//   } catch {
-//     console.log("API error");
-//   }
-// }
-
 async function fetchData() {
   let apiUrl = "./api/meme.json";
   try {
@@ -260,8 +246,7 @@ async function startGame() {
   neededGuesses = cardObject.length;
 
   cardObject = shuffleCards(cardObject);
-  console.log(cardObject);
-  console.log(neededGuesses);
+
   createCards(cardObject);
 
   let timerEl = document.querySelector("#gameTimer");
